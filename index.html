@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araw at Buwan: Science Adventure</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts for Comic Style -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Comic Neue', cursive;
+            background-color: #f0f4f8;
+            /* Comic Halftone Background */
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 20px 20px;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        h1, h2, h3, .comic-font {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 1px;
+        }
+
+        .comic-panel {
+            background-color: white;
+            border: 4px solid black;
+            border-radius: 8px;
+            box-shadow: 6px 6px 0px black;
+            transition: transform 0.1s;
+        }
+
+        .comic-btn {
+            background-color: #fbbf24;
+            border: 4px solid black;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px black;
+            font-family: 'Bangers', cursive;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.1s ease-in-out;
+        }
+        
+        .comic-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px black;
+        }
+
+        .comic-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px black;
+        }
+
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: .4em;
+            border: 4px solid black;
+            padding: 15px;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+        }
+
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border: 20px solid transparent;
+            border-right-color: black;
+            border-left: 0;
+            border-bottom: 0;
+            margin-top: -10px;
+            margin-left: -24px;
+        }
+        
+        .speech-bubble-inner:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+            border-right-color: #ffffff;
+            border-left: 0;
+            border-bottom: 0;
+            margin-top: -7.5px;
+            margin-left: -15px;
+            z-index: 1;
+        }
+
+        .day-bg {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+        
+        .night-bg {
+            background: linear-gradient(to bottom, #191970, #483D8B);
+            color: white;
+        }
+
+        /* Float animation for emojis */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden bg-[#f0f4f8]">
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const apiKey = ""; // Provided by execution environment
+
+        const CHARACTERS = [
+            // DAYTIME CHARACTERS (6)
+            {
+                id: 'day1', time: 'day', name: 'Mang Juan', role: 'Farmer',
+                emoji: '👨🏽‍🌾', icon: '🌾', activity: 'Planting Rice',
+                bg: 'day-bg', color: 'bg-green-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20filipino%20farmer%20planting%20rice%20in%20a%20sunny%20field?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hello Mang Juan!", response: "Magandang umaga! Look at the beautiful sunrise!" }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you sleep in the mud here?", response: "Haha, no! I sleep in my house. I'm just here to work!" },
+                            { label: "🙋🏽‍♂️ Why do your rice plants need the Sun?", response: "Plants need the Sun's light and heat to make their own food and grow." },
+                            { label: "🙋🏽‍♂️ Do plants watch television in the field?", response: "I don't have a TV here! They only 'watch' the Sun for energy." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why don't you plant at night when it's cool?", response: "It's too dark! I need the Sun's bright light to see my crops and tools clearly." },
+                            { label: "🙋🏽‍♂️ Do you farm during a dark storm?", response: "That's too dangerous! Farmers need clear, sunny weather." },
+                            { label: "🙋🏽‍♂️ Do plants sleep at night?", response: "They rest! Without the Sun, they can't make food, so they wait for morning." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is it because the Sun is giving off so much heat?", response: "The Sun acts like a giant heater, which makes me sweat a lot." },
+                            { label: "🙋🏽‍♂️ Did you go swimming in the mud?", response: "Haha, no! This is all sweat from working under the hot daytime Sun." },
+                            { label: "🙋🏽‍♂️ Are you crying?", response: "I'm very happy! I'm just sweating because the Sun is very hot today." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Would the plants turn into giant monsters without the Sun?", response: "Only in cartoons! In real life, they just wouldn't survive without sunlight." },
+                            { label: "🙋🏽‍♂️ Would they learn to glow in the dark?", response: "Plants don't have lightbulbs inside them! They need the real Sun." },
+                            { label: "🙋🏽‍♂️ What would happen to the rice if the Sun disappeared?", response: "Oh no! Without the Sun's light and heat, all plants on Earth would wither and die." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the Sun give us snow and wind?", response: "Brrr! No, the Sun is very hot. Snow comes from cold places." },
+                            { label: "🙋🏽‍♂️ Does the Sun give us rain and thunder?", response: "That comes from storm clouds! The Sun's job is to shine brightly." },
+                            { label: "🙋🏽‍♂️ So the Sun gives us both Light and Heat?", response: "Those are the two most important gifts the Sun gives to us." }
+                        ]
+                    },
+                    { text: "The Sun is very important for us farmers. We call it daytime!" }
+                ]
+            },
+            {
+                id: 'day2', time: 'day', name: 'Ate Lita', role: 'Office Worker',
+                emoji: '👩🏽‍💼', icon: '🍳', activity: 'Breakfast & City Hall',
+                bg: 'day-bg', color: 'bg-yellow-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20filipino%20woman%20eating%20a%20sunny%20side%20up%20egg%20for%20breakfast%20bright%20morning%20light?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Good morning Ate Lita!", response: "Hello! I'm eating breakfast before going to work at the City Hall." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Did people ask the stars for the time long ago?", response: "Not quite! The stars fade away in the morning." },
+                            { label: "🙋🏽‍♂️ How did people wake up before alarm clocks were invented?", response: "They used the Sun! The bright morning sunlight was their natural alarm clock." },
+                            { label: "🙋🏽‍♂️ Did they just guess what time it was?", response: "No, they had a very big glowing clue in the sky to tell them it was morning!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is this a midnight snack?", response: "Sunrise means it's morning, not midnight!" },
+                            { label: "🙋🏽‍♂️ Are you eating dinner early?", response: "We eat dinner when the sun goes down. This is breakfast!" },
+                            { label: "🙋🏽‍♂️ Do we eat breakfast when the Sun rises to get energy?", response: "Breakfast fuels our bodies for all our daytime activities." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ It tells us it's time to wake up and be active!", response: "Sunlight makes our brains feel awake and ready to move." },
+                            { label: "🙋🏽‍♂️ It tells us to hibernate in a cave?", response: "Haha, we are not bears! We need to go to school and work." },
+                            { label: "🙋🏽‍♂️ It tells us to go back to sleep?", response: "No, that's what the dark night is for." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are offices open during the day because people are afraid of the Moon?", response: "The moon is beautiful! That's not why we work in the day." },
+                            { label: "🙋🏽‍♂️ Why are offices and schools open during the day?", response: "Because it's safer, brighter, and easier to work with natural sunlight!" },
+                            { label: "🙋🏽‍♂️ Do offices lose their doors at night?", response: "They still have doors, they are just locked so people can sleep!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do we go to sleep for the night?", response: "Noon is way too early for bedtime!" },
+                            { label: "🙋🏽‍♂️ Do we eat our dinner?", response: "We eat dinner later when the sun sets." },
+                            { label: "🙋🏽‍♂️ What do we do when the Sun is highest in the sky?", response: "When the Sun is directly above us, we call it Noon, and it's time for lunch!" }
+                        ]
+                    },
+                    { text: "The Sun helps us know when to eat breakfast, go to school, and go to work!" }
+                ]
+            },
+            {
+                id: 'day3', time: 'day', name: 'Aling Nena', role: 'Market Vendor',
+                emoji: '👵🏽', icon: '👕', activity: 'Drying Food & Clothes',
+                bg: 'day-bg', color: 'bg-orange-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20older%20filipino%20woman%20hanging%20clothes%20to%20dry%20on%20a%20clothesline%20under%20a%20hot%20sun?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Kumusta po Aling Nena!", response: "Kumusta! I am hanging our clothes and making 'daing' (dried fish)." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are you doing this so the Moon can cool them?", response: "Oops! The clothes need heat to dry, not coolness." },
+                            { label: "🙋🏽‍♂️ Do you want the wind to blow them away?", response: "I hope not, I want to keep my clothes and my fish!" },
+                            { label: "🙋🏽‍♂️ Why do you do this outside during the day?", response: "The Sun's heat evaporates the water, drying them perfectly." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do the clothes absorb the water to get bigger?", response: "They don't grow like plants! They shrink a little when they dry." },
+                            { label: "🙋🏽‍♂️ Does the heat make the water evaporate into the air?", response: "The heat turns the water into an invisible gas." },
+                            { label: "🙋🏽‍♂️ Do they turn into solid ice?", response: "The sun is hot, it doesn't freeze things." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the Sun important for preserving food?", response: "Removing the water makes the dried fish last much longer without spoiling." },
+                            { label: "🙋🏽‍♂️ Does the Sun ruin the food instantly?", response: "Actually, drying is a very old and great way to preserve food." },
+                            { label: "🙋🏽‍♂️ Will the Sun turn the fish into chicken?", response: "That would be magic! It's still fish, just deliciously dried." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Should you leave them outside to wash them again?", response: "Oh no, my dried fish would be ruined if they got wet!" },
+                            { label: "🙋🏽‍♂️ Should we dance in the rain?", response: "Fun, but my clothes would get soaking wet!" },
+                            { label: "🙋🏽‍♂️ Should you bring everything inside quickly?", response: "When the Sun hides and rain falls, I have to save my dry clothes." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does it act like a giant refrigerator?", response: "A refrigerator is cold! The Sun is very, very hot." },
+                            { label: "🙋🏽‍♂️ Does it act like a giant heater and dryer?", response: "It's our free, natural dryer for the whole community." },
+                            { label: "🙋🏽‍♂️ Is it a giant washing machine?", response: "No, the rain is more like a washing machine. The Sun is the dryer." }
+                        ]
+                    },
+                    { text: "Without the hot Sun, our clothes would stay wet forever!" }
+                ]
+            },
+            {
+                id: 'day4', time: 'day', name: 'Kuya Ben', role: 'Builder',
+                emoji: '👷🏽‍♂️', icon: '🧱', activity: 'Building Houses',
+                bg: 'day-bg', color: 'bg-red-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20filipino%20construction%20worker%20building%20a%20brick%20house%20under%20the%20bright%20sun?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hi Kuya Ben!", response: "Hi kid! Careful around the construction site. We are building a new house." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you build during the day because the dark is too scary?", response: "Well, mostly it's because we need to see what we are doing." },
+                            { label: "🙋🏽‍♂️ Why is it better to build houses during the day?", response: "The Sun gives us natural light so it's safer to use our heavy tools." },
+                            { label: "🙋🏽‍♂️ Do your tools stop working at night?", response: "Hammers work any time, but we need sunlight to see where to hit!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are you wearing a winter beanie?", response: "That would make me sweat even more under this hot sun!" },
+                            { label: "🙋🏽‍♂️ Is that an umbrella hat?", response: "Funny, but an umbrella hat won't protect me from falling bricks." },
+                            { label: "🙋🏽‍♂️ Why do you wear a hard hat?", response: "It protects my head from falling objects and shades my face from the Sun's heat." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why do you sweat so much when working outside?", response: "The Sun's heat warms up our bodies, and sweating is our body's way of cooling down." },
+                            { label: "🙋🏽‍♂️ Did you go swimming in wet cement?", response: "Haha, no! That would be a huge mess." },
+                            { label: "🙋🏽‍♂️ Are you crying?", response: "No, I love my job! I am just hot because of the Sun." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do those just make the roof super heavy?", response: "They are heavy, but they have a real scientific purpose!" },
+                            { label: "🙋🏽‍♂️ Do those solar panels catch sunlight to make electricity?", response: "Solar energy is an amazing effect of the Sun." },
+                            { label: "🙋🏽‍♂️ Do they just bounce light at airplanes?", response: "No, we actually use them to power the house's lights!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Will that wet cement stay wet forever and become a pool?", response: "Oh no! We need solid ground to walk on." },
+                            { label: "🙋🏽‍♂️ Will the Sun's heat help the cement dry and harden?", response: "The heat evaporates the water in the cement, making it as hard as rock." },
+                            { label: "🙋🏽‍♂️ Will the Moon make it soft like a pillow?", response: "The moon has no effect on wet cement drying." }
+                        ]
+                    },
+                    { text: "Just remember to drink water because the Sun also makes it very hot!" }
+                ]
+            },
+            {
+                id: 'day5', time: 'day', name: 'Lolo Pedro', role: 'Grandfather',
+                emoji: '👴🏽', icon: '🦒', activity: 'Visiting a Zoo',
+                bg: 'day-bg', color: 'bg-lime-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20grandfather%20and%20child%20looking%20at%20giraffes%20in%20a%20bright%20sunny%20daytime%20zoo?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hello Lolo Pedro!", response: "Apo, look at the animals! We are visiting the zoo today." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why do we usually visit the zoo in the daytime?", response: "Because the sunlight helps us see all their beautiful colors, and most animals are awake!" },
+                            { label: "🙋🏽‍♂️ Do the animals wear pajamas during the day?", response: "Silly apo! Animals don't wear clothes." },
+                            { label: "🙋🏽‍♂️ Because the zoo has no gates at night?", response: "The zoo definitely has strong gates to keep the animals safe at night!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the Sun sing the trees to sleep?", response: "The sun doesn't have a voice!" },
+                            { label: "🙋🏽‍♂️ How does the Sun help the big trees in the zoo?", response: "The trees use the Sun's light energy to make their own food! This is called photosynthesis." },
+                            { label: "🙋🏽‍♂️ Does the Sun paint their leaves green?", response: "Leaves are naturally green, the sun just gives them energy." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Should we wear thick winter jackets?", response: "We would faint from the heat! It's too hot for that." },
+                            { label: "🙋🏽‍♂️ Should we run really fast to hide from the Sun?", response: "You can't outrun the sun, it's everywhere in the sky!" },
+                            { label: "🙋🏽‍♂️ How do we protect ourselves from getting sunburned?", response: "We use umbrellas and apply sunblock to protect our skin from too much heat." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are they practicing for a tanning contest?", response: "Haha, no! They don't care about tans." },
+                            { label: "🙋🏽‍♂️ Why do they sunbathe on the rocks?", response: "Turtles are reptiles, so they rely on the Sun's heat to warm their blood and bodies." },
+                            { label: "🙋🏽‍♂️ Are they waiting for a zoo bus?", response: "Turtles are very slow walkers, but they don't take the bus!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ What happens to the zoo when the Sun finally sets?", response: "Just like us, the zoo closes and the daytime animals go to sleep when it gets dark." },
+                            { label: "🙋🏽‍♂️ Do the animals throw a loud dance party at night?", response: "I wish! But they actually need rest." },
+                            { label: "🙋🏽‍♂️ Do all the animals escape to the city?", response: "Oh my, that would be chaotic! They stay safe inside the zoo." }
+                        ]
+                    },
+                    { text: "When the Sun goes down, the zoo closes and the animals go to sleep." }
+                ]
+            },
+            {
+                id: 'day6', time: 'day', name: 'Maya', role: 'Student',
+                emoji: '👧🏽', icon: '🏖️', activity: 'Going to the Beach',
+                bg: 'day-bg', color: 'bg-cyan-400',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20young%20girl%20building%20a%20sandcastle%20on%20a%20beautiful%20tropical%20beach%20bright%20sunny%20day?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hi Maya!", response: "Yay! No school today! I am building a sandcastle at the beach." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the ocean turn into solid ice?", response: "No way! That would be a freezing beach." },
+                            { label: "🙋🏽‍♂️ Does the sand turn into brown mud?", response: "Sand stays sand, it doesn't turn to mud." },
+                            { label: "🙋🏽‍♂️ Why is the beach so fun during the day?", response: "Because the Sun heats up the sand and water, making it perfect for swimming!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is it coming from giant flashlights underwater?", response: "Silly! That's sunlight." },
+                            { label: "🙋🏽‍♂️ Where does that bright light reflecting on the ocean come from?", response: "The ocean acts like a giant mirror reflecting the bright sunlight." },
+                            { label: "🙋🏽‍♂️ Are the fish glowing in the dark?", response: "Only deep sea fish glow, not the ones near the sunny beach!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why should we sit under the big beach umbrella sometimes?", response: "We need to rest in the shade because too much direct Sun can burn our skin." },
+                            { label: "🙋🏽‍♂️ Are you hiding from the seagulls?", response: "Well, maybe! But mostly to hide from the hot Sun." },
+                            { label: "🙋🏽‍♂️ Are you trying to catch rain water?", response: "It's a sunny day, there's no rain in the sky!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the salty ocean water dry your towel?", response: "Salt water keeps it wet! The Sun's heat does the drying." },
+                            { label: "🙋🏽‍♂️ Does the sand magically drink the water?", response: "No, if I roll in the sand I will just get sandy!" },
+                            { label: "🙋🏽‍♂️ What helps dry your wet towel after you swim?", response: "The heat from the Sun evaporates the water. It's our natural dryer." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you stay until it gets pitch black?", response: "That might be too dangerous and dark to pack up our things." },
+                            { label: "🙋🏽‍♂️ When is the best time to pack up and go home from the beach?", response: "When the Sun starts to set and it gets cooler, we know the day is over." },
+                            { label: "🙋🏽‍♂️ Do you go home at noon when it is hottest?", response: "No, that's when we want to swim the most!" }
+                        ]
+                    },
+                    { text: "But don't forget your sunblock to protect your skin from too much heat!" }
+                ]
+            },
+            // NIGHTTIME CHARACTERS (6)
+            {
+                id: 'night1', time: 'night', name: 'Mang Berto', role: 'Fisherman',
+                emoji: '🧔🏽‍♂️', icon: '⛵', activity: 'Catching Fish',
+                bg: 'night-bg', color: 'bg-blue-600',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20filipino%20fisherman%20on%20a%20small%20wooden%20boat%20in%20the%20ocean%20at%20night%20huge%20bright%20glowing%20moon?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Magandang gabi Mang Berto!", response: "Magandang gabi! I am sailing out to the sea to catch fish." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are the Clouds your best friend?", response: "Clouds cover the light, so I actually don't like them at night!" },
+                            { label: "🙋🏽‍♂️ Is the hot Sun your best friend?", response: "The sun is sleeping! I fish in the dark." },
+                            { label: "🙋🏽‍♂️ Who is the fisherman's best friend in the dark ocean?", response: "The Moon! It reflects light so we can see, and it controls the ocean water." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the Moon make the fish fly in the air?", response: "Wow, I wish! But it actually pulls the water." },
+                            { label: "🙋🏽‍♂️ What special power does the Moon's gravity have over the ocean?", response: "The Moon's gravity pulls the water, creating high and low tides." },
+                            { label: "🙋🏽‍♂️ Does the Moon push the boat backwards?", response: "The wind pushes the boat, the Moon just pulls the tides." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ How do the Moon and stars help us in the middle of the dark sea?", response: "We use their positions to navigate and find our direction so we don't get lost." },
+                            { label: "🙋🏽‍♂️ Do the stars tell you funny jokes?", response: "Haha, no! They act like our map in the sky." },
+                            { label: "🙋🏽‍♂️ Do they shine as bright as daytime?", response: "They give light, but it's much dimmer than the Sun." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the Full Moon pitch black?", response: "No, a Full Moon is the brightest phase!" },
+                            { label: "🙋🏽‍♂️ Does the Moon hide behind the stars?", response: "The moon is much closer and brighter than the stars behind it." },
+                            { label: "🙋🏽‍♂️ Is it easier to see the ocean when there is a Full Moon?", response: "A full moon reflects a lot of bright light on the water." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you sell them at midnight, when everyone is asleep?", response: "No one would be there to buy my fish!" },
+                            { label: "🙋🏽‍♂️ When do you usually bring your fresh catch back to the market?", response: "At sunrise! When the morning comes, the market is busy and ready." },
+                            { label: "🙋🏽‍♂️ Do you wait until the afternoon?", response: "My fish would not be fresh by the afternoon." }
+                        ]
+                    },
+                    { text: "The Moon's gravity pulls the ocean water, creating high tides and low tides!" }
+                ]
+            },
+            {
+                id: 'night2', time: 'night', name: 'Nanay Rosa', role: 'Mother',
+                emoji: '👩🏽‍🍳', icon: '🍲', activity: 'Eating Supper',
+                bg: 'night-bg', color: 'bg-purple-600',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20filipino%20family%20eating%20dinner%20together%20at%20a%20table%20at%20night%20time%20warm%20indoor%20lighting?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hi Nanay Rosa!", response: "Dinner is ready! Wash your hands." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ What does the sunset tell us?", response: "It tells our family the day is ending and it's time to gather, eat supper, and rest." },
+                            { label: "🙋🏽‍♂️ Does the sunset mean it's time to wake up for school?", response: "Oh no, that's sunrise! Sunset means the day is over." },
+                            { label: "🙋🏽‍♂️ Does the sunset mean it's time to eat breakfast?", response: "Breakfast is for the morning!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Did you turn on the lights because the Sun is too bright?", response: "No, we need lamps because the Sun is gone!" },
+                            { label: "🙋🏽‍♂️ Did you turn on the lights to scare ghosts away?", response: "Haha, ghosts aren't real! We need them to see our food." },
+                            { label: "🙋🏽‍♂️ Why do we need lights inside our house now?", response: "Because the Sun went down and it's completely dark outside." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do we go outside and plant rice in the dark?", response: "That's Mang Juan's job, and he does it in the day!" },
+                            { label: "🙋🏽‍♂️ What do we usually do as a family when night falls?", response: "Nighttime brings the family together to eat supper and talk about our day." },
+                            { label: "🙋🏽‍♂️ Do we run around the block?", response: "It's too dark to run safely outside." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the Moon give off hot heat like the Sun?", response: "The Moon does not give off heat, so the night is usually cooler." },
+                            { label: "🙋🏽‍♂️ Is the Moon very hot?", response: "Actually, the Moon does not produce its own heat." },
+                            { label: "🙋🏽‍♂️ Does the Moon boil the ocean?", response: "That would be disastrous! The moon is cool." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why is everyone shouting?", response: "No, people are very quiet when they sleep!" },
+                            { label: "🙋🏽‍♂️ Why are the birds singing?", response: "Most birds sleep at night too." },
+                            { label: "🙋🏽‍♂️ Why is our neighborhood so quiet at night?", response: "Because most people and animals are resting. The darkness signals our bodies to sleep." }
+                        ]
+                    },
+                    { text: "The Sun's absence tells us it's time to prepare our bodies to rest." }
+                ]
+            },
+            {
+                id: 'night3', time: 'night', name: 'Lola Flor', role: 'Grandmother',
+                emoji: '👵🏽', icon: '🛌', activity: 'Wearing Pajamas',
+                bg: 'night-bg', color: 'bg-indigo-600',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20grandmother%20wearing%20pajamas%20getting%20ready%20for%20bed%20looking%20out%20window%20at%20dark%20starry%20night?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Good evening Lola Flor!", response: "Yawn... Good evening, apo. I have my comfy pajamas on." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the dark sky signal our brains to play outside?", response: "Oh my, no! The darkness tells us it is time to sleep and rest." },
+                            { label: "🙋🏽‍♂️ What does the dark sky signal to our brains?", response: "When it gets dark, our bodies know it is time to sleep and rest." },
+                            { label: "🙋🏽‍♂️ Does the dark sky mean it's time to eat lunch?", response: "Lunch is eaten when the Sun is highest in the sky!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why do our bodies need to rest at night?", response: "Sleep is very important. We rest to recover energy and grow stronger for tomorrow." },
+                            { label: "🙋🏽‍♂️ Do we sleep to shrink and become smaller?", response: "We grow bigger and stronger when we sleep, not smaller!" },
+                            { label: "🙋🏽‍♂️ Do we sleep to forget everything?", response: "Sleep actually helps our brains remember what we learned!" }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are those big fluffy white clouds?", response: "Sometimes there are clouds, but I'm looking at the twinkling lights!" },
+                            { label: "🙋🏽‍♂️ Is that the hot shining Sun?", response: "The sun is on the other side of the world right now!" },
+                            { label: "🙋🏽‍♂️ What accompanies the Moon in the night sky?", response: "The shining stars! Millions of them." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Did someone paint the windows black?", response: "Haha, no! It's just nighttime outside." },
+                            { label: "🙋🏽‍♂️ Why is my bedroom dark when I turn off the lamp?", response: "It's dark because our side of the Earth is facing away from the Sun." },
+                            { label: "🙋🏽‍♂️ Did the Sun turn off like a light switch?", response: "The Sun is always shining in space, Earth just turns away from it." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ What happens when our side of the Earth faces the Sun again?", response: "Morning comes, a new day begins, and we wake up full of energy." },
+                            { label: "🙋🏽‍♂️ Will the Moon stay forever?", response: "The Moon will fade away when the bright Sun returns." },
+                            { label: "🙋🏽‍♂️ Will it snow everywhere?", response: "The Sun brings heat, not snow!" }
+                        ]
+                    },
+                    { text: "Our bodies need nighttime to rest and grow stronger for tomorrow." }
+                ]
+            },
+            {
+                id: 'night4', time: 'night', name: 'Kuya Jomar', role: 'Security Guard',
+                emoji: '👮🏽‍♂️', icon: '🔦', activity: 'Working Night Shift',
+                bg: 'night-bg', color: 'bg-slate-700',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20security%20guard%20holding%20a%20bright%20flashlight%20outside%20a%20dark%20building%20at%20night?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hello Kuya Jomar!", response: "Halt! Oh, hello there. I work at night to keep the building safe while everyone is asleep." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you use that flashlight to scare alien spaceships?", response: "Haha no! It's just a regular light to help me see." },
+                            { label: "🙋🏽‍♂️ Do you use it because the Sun is too bright?", response: "The sun isn't out right now!" },
+                            { label: "🙋🏽‍♂️ Why do you need this bright flashlight?", response: "Since there is no Sun, the Moon's light is very faint, so I need my flashlight to see perfectly." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is it much hotter than the daytime?", response: "Actually, it gets much cooler without the Sun." },
+                            { label: "🙋🏽‍♂️ Since there is no Sun shining, how does the air feel?", response: "It is usually cooler at night without the Sun's heat." },
+                            { label: "🙋🏽‍♂️ Does it feel like an oven?", response: "That's how the daytime feels when the Sun is hot." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why do we have streetlights turned on outside?", response: "Since the Sun is gone, we use artificial light to keep our streets safe at night." },
+                            { label: "🙋🏽‍♂️ Are they turned on to keep the birds warm?", response: "No, they are just for us humans to see in the dark!" },
+                            { label: "🙋🏽‍♂️ Are they turned on to grow plants at night?", response: "Plants need real sunlight to grow big, streetlights don't help them." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the Moon always a perfect full circle?", response: "Look closely next time! It changes shape over the month." },
+                            { label: "🙋🏽‍♂️ Does the Moon never change?", response: "It changes every few nights." },
+                            { label: "🙋🏽‍♂️ Does the Moon always look the same every night?", response: "It changes shape in different phases. Sometimes it's a crescent, sometimes a full moon." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does your night shift end when it starts raining?", response: "I have to work even if it rains! My shift only ends at sunrise." },
+                            { label: "🙋🏽‍♂️ When does your night shift finally end?", response: "When the Sun rises in the morning, my relief arrives and I can finally go to sleep." },
+                            { label: "🙋🏽‍♂️ Does your shift end when the Moon gets tired?", response: "The Moon doesn't get tired, but I do when morning comes!" }
+                        ]
+                    },
+                    { text: "Without the Sun, we need artificial light to see perfectly in the dark!" }
+                ]
+            },
+            {
+                id: 'night5', time: 'night', name: 'Tito Boy', role: 'Astronomer',
+                emoji: '👨🏽‍🔬', icon: '🌕', activity: 'Moon Watching',
+                bg: 'night-bg', color: 'bg-violet-800',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20astronomer%20looking%20through%20a%20telescope%20at%20a%20glowing%20full%20moon%20starry%20night%20sky?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hi Tito Boy!", response: "Wow, look through my telescope! The Moon is so clear tonight." }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Does the Moon make its own light?", response: "No, it doesn't. It acts like a giant mirror reflecting light from the Sun." },
+                            { label: "🙋🏽‍♂️ Is the Moon like a giant lightbulb?", response: "Actually, it doesn't have its own light! It reflects the light from the Sun." },
+                            { label: "🙋🏽‍♂️ Is the Moon full of fireflies?", response: "That would be magical, but it's just reflecting sunlight." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Are those called Moon Candies?", response: "Haha, they do look like half-eaten cookies, but no." },
+                            { label: "🙋🏽‍♂️ What are the different shapes of the Moon called?", response: "They are called Moon Phases, like crescent and full moon." },
+                            { label: "🙋🏽‍♂️ Are those called Moon Slices?", response: "It's not a pizza! They are called Moon Phases." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do stars only exist at night?", response: "The stars are always there, the Sun just outshines them in the day!" },
+                            { label: "🙋🏽‍♂️ Do the stars sleep in the day?", response: "Stars are giant balls of gas, they don't sleep." },
+                            { label: "🙋🏽‍♂️ Why is it easier to see the stars at night than during the day?", response: "Because the sky is dark without the Sun's bright glare hiding them." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why does the Moon look like it has bumpy holes?", response: "Those are craters made from space rocks hitting its surface." },
+                            { label: "🙋🏽‍♂️ Is it made of Swiss cheese?", response: "Yum, but no! Those are rocky craters." },
+                            { label: "🙋🏽‍♂️ Are those footprints from giant aliens?", response: "No giant aliens up there! Just big space rocks hitting it." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the Sun hiding right behind the Moon?", response: "That's an eclipse! But normally, no." },
+                            { label: "🙋🏽‍♂️ Can we see the Sun while looking at the Moon tonight?", response: "We can't see it because the Sun is shining on the other side of the Earth." },
+                            { label: "🙋🏽‍♂️ Is the Sun right next to the stars?", response: "We can't see it because it's lighting up the other side of the world right now!" }
+                        ]
+                    },
+                    { text: "As the Moon moves, we see different shapes called Moon Phases. Science is amazing!" }
+                ]
+            },
+            {
+                id: 'night6', time: 'night', name: 'Ate Kring', role: 'Street Vendor',
+                emoji: '👩🏽', icon: '🍢', activity: 'Night Market',
+                bg: 'night-bg', color: 'bg-fuchsia-700',
+                image: 'https://image.pollinations.ai/prompt/3d%20pixar%20style%20animation%20street%20food%20vendor%20selling%20hot%20fishballs%20night%20market%20lit%20by%20glowing%20lanterns?width=400&height=300&nologo=true',
+                dialogue: [
+                    { 
+                        choices: [
+                            { label: "👋 Hello Ate Kring!", response: "Bili na kayo! Get your hot fishballs here!" }
+                        ]
+                    },
+                    { 
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the market relaxing because the hot Sun is still shining?", response: "Actually, the Sun is gone! The breeze is relaxing without its heat." },
+                            { label: "🙋🏽‍♂️ Is it relaxing because it is raining?", response: "We can't sell food outside in the rain!" },
+                            { label: "🙋🏽‍♂️ Why is the night market so relaxing?", response: "Without the Sun's heat, the evening breeze is cool and makes it perfect for walking." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Is the Sun still shining on us?", response: "No, it's nighttime! We use artificial lights." },
+                            { label: "🙋🏽‍♂️ What gives light to all the food stalls in the night market?", response: "Since the Sun is down, we use artificial lights like colorful lanterns and lightbulbs." },
+                            { label: "🙋🏽‍♂️ Do the fishballs glow in the dark?", response: "That would be scary to eat! We use lanterns." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Why do many people love eating hot food at night?", response: "The cooler night weather makes a warm soup or hot fishball feel very comforting." },
+                            { label: "🙋🏽‍♂️ Is food only cooked at night?", response: "People cook in the day too, but hot food feels best at night!" },
+                            { label: "🙋🏽‍♂️ Because cold food melts at night?", response: "Cold food melts in the daytime Sun, not at night." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you leave them under the Moon to cook?", response: "The Moon gives no heat! I need a stove." },
+                            { label: "🙋🏽‍♂️ Do you blow on them with your breath?", response: "That won't cook them! I use fire." },
+                            { label: "🙋🏽‍♂️ How do you cook the fishballs without the Sun's heat?", response: "Since we don't have the Sun, I use my cooking stove with fire to make heat." }
+                        ]
+                    },
+                    {
+                        choices: [
+                            { label: "🙋🏽‍♂️ Do you keep selling forever and ever?", response: "I would be so tired! We have to go home and sleep." },
+                            { label: "🙋🏽‍♂️ What happens when the night market finally closes?", response: "We pack up, go home, and sleep before the Sun rises again." },
+                            { label: "🙋🏽‍♂️ Do you wait for the Moon to fall?", response: "The Moon stays in the sky. We just go home to sleep!" }
+                        ]
+                    },
+                    { text: "I love selling at the night market because the temperature is perfect." }
+                ]
+            }
+        ];
+
+        const App = () => {
+            const [view, setView] = useState('album'); // album, map, dialogue, summary
+            const [unlocked, setUnlocked] = useState([]);
+            const [activeCharId, setActiveCharId] = useState(null);
+            const [dialogueStep, setDialogueStep] = useState(0);
+            
+            // New Messaging State
+            const [hasAnswered, setHasAnswered] = useState(false);
+            const [chatHistory, setChatHistory] = useState([]);
+            const chatEndRef = useRef(null);
+
+            // Trigger summary when all 12 are unlocked
+            useEffect(() => {
+                if (unlocked.length === CHARACTERS.length && view === 'album') {
+                    setTimeout(() => setView('summary'), 800);
+                }
+            }, [unlocked, view]);
+
+            // Auto-scroll chat down when new messages are added
+            useEffect(() => {
+                if (view === 'dialogue' && chatEndRef.current) {
+                    chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, [chatHistory, view]);
+
+            const activeChar = CHARACTERS.find(c => c.id === activeCharId);
+
+            const startDialogue = (id) => {
+                setActiveCharId(id);
+                setDialogueStep(0);
+                setHasAnswered(false);
+                
+                // Initialize chat empty so the player sends the first greeting message!
+                setChatHistory([]);
+                setView('dialogue');
+            };
+
+            const handleChoice = (choice) => {
+                // Add the player's choice and the NPC's response to the chat
+                setChatHistory(prev => [
+                    ...prev,
+                    { sender: 'player', text: choice.label },
+                    { sender: 'npc', text: choice.response }
+                ]);
+                setHasAnswered(true);
+            };
+
+            const nextDialogue = () => {
+                if (dialogueStep < activeChar.dialogue.length - 1) {
+                    const nextStep = dialogueStep + 1;
+                    setDialogueStep(nextStep);
+                    setHasAnswered(false);
+                    // Append the next script step to the chat only if it contains NPC text
+                    if (activeChar.dialogue[nextStep].text) {
+                        setChatHistory(prev => [
+                            ...prev,
+                            { sender: 'npc', text: activeChar.dialogue[nextStep].text }
+                        ]);
+                    }
+                } else {
+                    // Finish dialogue
+                    if (!unlocked.includes(activeCharId)) {
+                        setUnlocked([...unlocked, activeCharId]);
+                    }
+                    setView('album');
+                }
+            };
+
+            // --- RENDERERS ---
+
+            const renderAlbum = () => (
+                <div className="h-full w-full p-2 flex flex-col items-center justify-center">
+                    <div className="text-center mb-2 comic-panel p-1 md:p-2 bg-yellow-100 w-full max-w-4xl flex-shrink-0 relative">
+                        <h1 className="text-xl md:text-3xl text-red-600 mb-0 leading-none">My Community Album</h1>
+                        <p className="text-xs md:text-sm m-0 leading-tight">Talk to people in the community to meet them all!</p>
+                        <p className="font-bold text-[10px] md:text-xs m-0 leading-tight">Unlocked: {unlocked.length} / {CHARACTERS.length}</p>
+                    </div>
+
+                    <div className="grid grid-cols-4 grid-rows-3 gap-1 md:gap-2 w-full max-w-4xl flex-grow min-h-0 overflow-hidden">
+                        {CHARACTERS.map((char, idx) => {
+                            const isUnlocked = unlocked.includes(char.id);
+                            return (
+                                <div key={char.id} className={`comic-panel flex flex-col items-center justify-between p-1 md:p-2 h-full min-h-0 transition-all ${isUnlocked ? 'bg-white' : 'bg-gray-200'} ${isUnlocked ? '' : 'grayscale'}`}>
+                                    {isUnlocked ? (
+                                        <>
+                                            <div className="w-full flex-grow min-h-0 rounded border border-black overflow-hidden relative shadow-[2px_2px_0px_black] mb-1 flex items-center justify-center bg-white p-1">
+                                                <span className="text-4xl md:text-6xl animate-float">{char.emoji}</span>
+                                            </div>
+                                            <div className="text-center w-full flex-shrink-0">
+                                                <div className="font-bold text-[8px] md:text-[10px] bg-white px-1 rounded border border-black whitespace-nowrap overflow-hidden text-ellipsis leading-tight">{char.name}</div>
+                                                <div className="text-[7px] md:text-[9px] mt-0.5 font-bold truncate leading-tight">{char.icon} {char.activity}</div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-full flex-grow min-h-0 rounded border border-dashed border-gray-400 bg-gray-300 flex items-center justify-center mb-1">
+                                                <span className="text-xl md:text-2xl text-gray-500">❓</span>
+                                            </div>
+                                            <div className="flex-shrink-0 text-center w-full">
+                                                <div className="text-[8px] md:text-[10px] font-bold text-gray-500 leading-tight">Locked</div>
+                                                <div className="text-[7px] md:text-[9px] text-gray-500 leading-tight">#{idx + 1}</div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <button 
+                        onClick={() => setView('map')}
+                        className="comic-btn mt-2 px-6 py-1 md:py-2 text-sm md:text-xl text-white bg-blue-500 hover:bg-blue-600 w-full max-w-md flex-shrink-0"
+                    >
+                        Let's go to the community!
+                    </button>
+                </div>
+            );
+
+            const renderMap = () => (
+                <div className="h-full w-full p-2 md:p-4 flex flex-col">
+                    <div className="flex justify-between items-center mb-2 comic-panel p-2 bg-white flex-shrink-0">
+                        <h1 className="text-xl md:text-2xl m-0">Explore the Town</h1>
+                        <div className="flex gap-2">
+                            <button onClick={() => setView('album')} className="comic-btn px-3 py-1 text-sm bg-gray-200">🔙 Album</button>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-row gap-2 md:gap-4 flex-grow overflow-hidden">
+                        {/* Daytime Side */}
+                        <div className="flex-1 comic-panel day-bg p-2 md:p-4 flex flex-col items-center border-yellow-400 border-4 relative overflow-hidden h-full">
+                            <div className="absolute top-[-10px] left-[-10px] text-5xl md:text-6xl opacity-50">☀️</div>
+                            <h2 className="text-xl md:text-2xl text-yellow-800 mb-2 md:mb-4 z-10 bg-white/80 px-3 py-1 rounded-full border-2 border-black">Daytime</h2>
+                            
+                            <div className="grid grid-cols-2 gap-2 w-full z-10 flex-grow">
+                                {CHARACTERS.filter(c => c.time === 'day').map(char => (
+                                    <button 
+                                        key={char.id}
+                                        onClick={() => startDialogue(char.id)}
+                                        className={`comic-panel p-1 md:p-2 flex flex-col items-center justify-center hover:scale-105 transition-transform ${unlocked.includes(char.id) ? 'bg-green-100' : 'bg-white'}`}
+                                    >
+                                        <div className="text-3xl md:text-4xl">{char.emoji}</div>
+                                        <div className="font-bold text-[10px] md:text-xs mt-1 text-center leading-tight">{char.name}</div>
+                                        <div className="text-[9px] md:text-[10px] text-gray-600 text-center leading-tight">{char.activity}</div>
+                                        {unlocked.includes(char.id) && <div className="absolute top-1 right-1 text-green-500 text-sm">✅</div>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Nighttime Side */}
+                        <div className="flex-1 comic-panel night-bg p-2 md:p-4 flex flex-col items-center border-indigo-900 border-4 relative overflow-hidden h-full">
+                            <div className="absolute top-2 right-2 text-4xl md:text-5xl opacity-50">🌙</div>
+                            <h2 className="text-xl md:text-2xl text-yellow-300 mb-2 md:mb-4 z-10 bg-black/50 px-3 py-1 rounded-full border-2 border-yellow-300">Nighttime</h2>
+                            
+                            <div className="grid grid-cols-2 gap-2 w-full z-10 flex-grow">
+                                {CHARACTERS.filter(c => c.time === 'night').map(char => (
+                                    <button 
+                                        key={char.id}
+                                        onClick={() => startDialogue(char.id)}
+                                        className={`comic-panel p-1 md:p-2 flex flex-col items-center justify-center hover:scale-105 transition-transform ${unlocked.includes(char.id) ? 'bg-green-100 text-black' : 'bg-white text-black'}`}
+                                    >
+                                        <div className="text-3xl md:text-4xl">{char.emoji}</div>
+                                        <div className="font-bold text-[10px] md:text-xs mt-1 text-center leading-tight">{char.name}</div>
+                                        <div className="text-[9px] md:text-[10px] text-gray-600 text-center leading-tight">{char.activity}</div>
+                                        {unlocked.includes(char.id) && <div className="absolute top-1 right-1 text-green-500 text-sm">✅</div>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderDialogue = () => {
+                const currentDialogue = activeChar.dialogue[dialogueStep];
+                
+                return (
+                    <div className={`h-full w-full ${activeChar.bg} flex flex-col p-2 md:p-4`}>
+                        {/* Status Bar */}
+                        <div className="flex justify-between items-center mb-2 z-10 flex-shrink-0">
+                            <div className="bg-white text-black border-2 md:border-4 border-black px-2 py-1 md:px-4 md:py-2 text-sm md:text-base font-bold rounded-lg shadow-[2px_2px_0px_black] md:shadow-[4px_4px_0px_black]">
+                                {activeChar.icon} {activeChar.activity}
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => setView('map')} className="comic-btn px-3 py-1 md:px-4 md:py-2 text-sm md:text-base bg-red-400 text-white">Run Away</button>
+                            </div>
+                        </div>
+
+                        {/* Main Comic Panel */}
+                        <div className="comic-panel bg-white text-black p-4 md:p-6 flex flex-row items-center gap-4 md:gap-8 flex-grow min-h-0">
+                            
+                            {/* Character */}
+                            <div className="flex flex-col items-center justify-center w-1/3 flex-shrink-0 h-full">
+                                <div className={`w-20 h-20 md:w-32 md:h-32 rounded-full border-4 border-black ${activeChar.color} flex items-center justify-center shadow-[4px_4px_0px_black] mb-2`}>
+                                    <span className="text-5xl md:text-7xl animate-float">{activeChar.emoji}</span>
+                                </div>
+                                <div className="bg-black text-white px-3 py-1 rounded-full border-2 border-white comic-font text-sm md:text-lg tracking-wider shadow-[2px_2px_0px_gray] text-center w-full">
+                                    {activeChar.name}
+                                </div>
+                                <div className="text-[10px] md:text-xs font-bold text-gray-600 mt-1 uppercase text-center">{activeChar.role}</div>
+                            </div>
+
+                            {/* Messaging App Style Chat & Controls */}
+                            <div className="w-2/3 flex flex-col h-full min-h-0 bg-[#f8fafc] rounded-xl border-4 border-black overflow-hidden shadow-[inset_0px_4px_10px_rgba(0,0,0,0.1)] relative">
+                                
+                                {/* Messages Area */}
+                                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                                    {chatHistory.map((msg, i) => (
+                                        <div key={i} className={`flex ${msg.sender === 'player' ? 'justify-end' : 'justify-start'} w-full`}>
+                                            <div className={`max-w-[85%] p-3 rounded-2xl border-4 border-black font-bold text-sm md:text-lg shadow-[4px_4px_0px_black] leading-snug ${
+                                                msg.sender === 'player' 
+                                                    ? 'bg-blue-400 text-white rounded-tr-none' 
+                                                    : 'bg-white text-black rounded-tl-none'
+                                            }`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* Invisible anchor element to scroll into view */}
+                                    <div ref={chatEndRef} />
+                                </div>
+
+                                {/* Controls Area (Bottom) */}
+                                <div className="bg-white border-t-4 border-black p-4 flex flex-col gap-2 flex-shrink-0 z-10 shadow-[0px_-4px_0px_rgba(0,0,0,0.05)]">
+                                    {!hasAnswered && currentDialogue.choices ? (
+                                        // Show choices
+                                        <div className="flex flex-col gap-2">
+                                            {currentDialogue.choices.map((choice, i) => (
+                                                <button 
+                                                    key={i}
+                                                    onClick={() => handleChoice(choice)}
+                                                    className="comic-btn text-black px-3 py-2 md:py-3 text-xs md:text-sm bg-yellow-300 hover:bg-yellow-400 w-full text-left rounded-xl"
+                                                >
+                                                    {choice.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        // Show continue/finish button
+                                        <button 
+                                            onClick={nextDialogue}
+                                            className="comic-btn text-black px-4 py-2 md:py-3 text-sm md:text-lg bg-green-400 hover:bg-green-500 w-full md:w-auto self-end rounded-xl"
+                                        >
+                                            {dialogueStep < activeChar.dialogue.length - 1 ? 'Continue 💬' : 'Finish ✨'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderSummary = () => (
+                <div className="h-full w-full bg-green-200 flex flex-col items-center justify-center p-2 md:p-4">
+                    <div className="max-w-4xl w-full h-full comic-panel bg-white p-4 md:p-8 text-center border-yellow-400 border-8 relative flex flex-col justify-center">
+                        <div className="absolute top-2 left-2 md:-top-6 md:-left-6 text-4xl md:text-6xl animate-bounce">🏆</div>
+                        <div className="absolute top-2 right-2 md:-top-6 md:-right-6 text-4xl md:text-6xl animate-bounce" style={{animationDelay: '0.5s'}}>🌟</div>
+                        
+                        <h1 className="text-3xl md:text-5xl text-red-600 mb-2 md:mb-4">Congratulations!</h1>
+                        <p className="text-sm md:text-xl mb-4 md:mb-6">You talked to everyone and learned so much!</p>
+                        
+                        <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-left flex-grow overflow-hidden">
+                            <div className="flex-1 comic-panel p-2 md:p-4 bg-yellow-100 flex flex-col justify-center">
+                                <h2 className="text-xl md:text-2xl text-yellow-800 border-b-2 border-black mb-1 md:mb-2 pb-1">☀️ Sun</h2>
+                                <ul className="list-disc list-inside text-xs md:text-sm space-y-1">
+                                    <li>Gives light so we can see.</li>
+                                    <li>Gives heat to dry clothes.</li>
+                                    <li>Helps plants make food.</li>
+                                    <li>Acts as a timekeeper.</li>
+                                </ul>
+                            </div>
+                            
+                            <div className="flex-1 comic-panel p-2 md:p-4 bg-indigo-100 flex flex-col justify-center">
+                                <h2 className="text-xl md:text-2xl text-indigo-800 border-b-2 border-black mb-1 md:mb-2 pb-1">🌙 Moon</h2>
+                                <ul className="list-disc list-inside text-xs md:text-sm space-y-1">
+                                    <li>Pulls ocean to make tides.</li>
+                                    <li>Reflects sunlight at night.</li>
+                                    <li>Helps find direction.</li>
+                                    <li>Signals time to sleep.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={() => { setUnlocked([]); setView('album'); }}
+                            className="comic-btn mt-4 md:mt-6 px-6 py-2 md:py-3 text-lg md:text-2xl bg-blue-500 text-white w-full md:w-auto self-center flex-shrink-0"
+                        >
+                            Play Again! 🔄
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="h-full w-full relative">
+                    {view === 'album' && renderAlbum()}
+                    {view === 'map' && renderMap()}
+                    {view === 'dialogue' && renderDialogue()}
+                    {view === 'summary' && renderSummary()}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
